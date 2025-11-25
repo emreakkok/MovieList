@@ -1,7 +1,9 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using MovieList.Core.Entities;
+using MovieList.Core.Interfaces;
 using MovieList.DataAccess.Context;
+using MovieList.DataAccess.Repositories;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -12,6 +14,12 @@ var connectionString = builder.Configuration.GetConnectionString("DefaultConnect
 
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlServer(connectionString));
+
+// Dependency Injection for Repositories
+builder.Services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
+builder.Services.AddScoped<IMovieRepository, MovieRepository>();
+builder.Services.AddScoped<IUserRepository, UserRepository>();
+
 
 builder.Services.AddIdentity<User, IdentityRole<int>>(options =>
 {

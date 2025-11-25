@@ -12,6 +12,8 @@ namespace MovieList.Core.Entities
         public int TmdbId { get; set; }
         public string Title { get; set; } = string.Empty;
         public string? OriginalTitle { get; set; }
+
+        public DateTime? ReleaseDate { get; set; }
         public string? Overview { get; set; }
         public string? PosterPath { get; set; }
         public int? Runtime { get; set; }
