@@ -18,5 +18,18 @@ namespace MovieList.Core.DTOs.Movie
         public decimal? VoteAverage { get; set; }
         public int WatchCount { get; set; }
         public int LikeCount { get; set; }
+
+        public string FullPosterUrl
+        {
+            get
+            {
+                if (string.IsNullOrEmpty(PosterPath))
+                {
+                    return "https://via.placeholder.com/500x750?text=No+Poster";
+                }
+                
+                return $"https://image.tmdb.org/t/p/w500{PosterPath}";
+            }
+        }
     }
 }

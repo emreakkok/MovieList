@@ -16,6 +16,7 @@ namespace MovieList.Core.Entities
         public DateTime? ReleaseDate { get; set; }
         public string? Overview { get; set; }
         public string? PosterPath { get; set; }
+        public string? BackdropPath { get; set; }
         public int? Runtime { get; set; }
         public string? Genres { get; set; }
 

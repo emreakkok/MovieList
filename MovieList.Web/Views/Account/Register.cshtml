@@ -1,0 +1,165 @@
+﻿@model MovieList.Core.DTOs.Auth.RegisterDto
+
+@{
+    ViewData["Title"] = "Kayıt Ol";
+}
+
+<div class="container">
+    <div class="row justify-content-center mt-5">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-body p-5">
+                    <h2 class="text-center mb-4">
+                        <i class="fas fa-user-plus"></i> Kayıt Ol
+                    </h2>
+
+                    <form asp-action="Register" method="post">
+                        <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+
+                        <!-- Username -->
+                        <div class="mb-3">
+                            <label asp-for="Username" class="form-label">
+                                <i class="fas fa-user"></i> Kullanıcı Adı
+                            </label>
+                            <input asp-for="Username"
+                                   class="form-control"
+                                   placeholder="örn: username"
+                                   id="usernameInput" />
+                            <span asp-validation-for="Username" class="text-danger"></span>
+                            <small id="usernameAvailable" class="form-text"></small>
+                        </div>
+
+                        <!-- Email -->
+                        <div class="mb-3">
+                            <label asp-for="Email" class="form-label">
+                                <i class="fas fa-envelope"></i> Email
+                            </label>
+                            <input asp-for="Email"
+                                   class="form-control"
+                                   placeholder="ornek@email.com"
+                                   id="emailInput" />
+                            <span asp-validation-for="Email" class="text-danger"></span>
+                            <small id="emailAvailable" class="form-text"></small>
+                        </div>
+
+                        <!-- Password -->
+                        <div class="mb-3">
+                            <label asp-for="Password" class="form-label">
+                                <i class="fas fa-lock"></i> Şifre
+                            </label>
+                            <input asp-for="Password"
+                                   class="form-control"
+                                   placeholder="En az 6 karakter" />
+                            <span asp-validation-for="Password" class="text-danger"></span>
+                        </div>
+
+                        <!-- Confirm Password -->
+                        <div class="mb-4">
+                            <label asp-for="ConfirmPassword" class="form-label">
+                                <i class="fas fa-lock"></i> Şifre Tekrar
+                            </label>
+                            <input asp-for="ConfirmPassword"
+                                   class="form-control"
+                                   placeholder="Şifrenizi tekrar girin" />
+                            <span asp-validation-for="ConfirmPassword" class="text-danger"></span>
+                        </div>
+
+                        <!-- Submit -->
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                <i class="fas fa-user-plus"></i> Kayıt Ol
+                            </button>
+                        </div>
+
+                        <!-- Login Link -->
+                        <div class="text-center mt-3">
+                            <p class="text-muted">
+                                Zaten hesabın var mı?
+                                <a asp-action="Login" style="color: var(--accent-green);">Giriş Yap</a>
+                            </p>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+
+    <script>
+        // Username kontrolü (AJAX)
+        (function() {
+            let usernameTimeout;
+            const usernameInput = document.getElementById('usernameInput');
+            const usernameAvailable = document.getElementById('usernameAvailable');
+
+            if (usernameInput) {
+                usernameInput.addEventListener('input', function() {
+                    clearTimeout(usernameTimeout);
+                    const username = this.value;
+
+                    if (username.length < 3) {
+                        usernameAvailable.textContent = '';
+                        usernameAvailable.className = 'form-text';
+                        return;
+                    }
+
+                    usernameTimeout = setTimeout(() => {
+                        fetch('/Account/CheckUsername?username=' + encodeURIComponent(username))
+                            .then(response => response.json())
+                            .then(data => {
+                                if (data.available) {
+                                    usernameAvailable.textContent = '✓ Kullanıcı adı uygun';
+                                    usernameAvailable.className = 'form-text text-success';
+                                } else {
+                                    usernameAvailable.textContent = '✗ Bu kullanıcı adı kullanılıyor';
+                                    usernameAvailable.className = 'form-text text-danger';
+                                }
+                            })
+                            .catch(error => {
+                                console.error('Username check error:', error);
+                            });
+                    }, 500);
+                });
+            }
+
+            // Email kontrolü (AJAX)
+            let emailTimeout;
+            const emailInput = document.getElementById('emailInput');
+            const emailAvailable = document.getElementById('emailAvailable');
+
+            if (emailInput) {
+                emailInput.addEventListener('input', function() {
+                    clearTimeout(emailTimeout);
+                    const email = this.value;
+
+                    const emailRegex = /^[^\s@@]+@@[^\s@@]+\.[^\s@@]+$/;
+                    if (!emailRegex.test(email)) {
+                        emailAvailable.textContent = '';
+                        emailAvailable.className = 'form-text';
+                        return;
+                    }
+
+                    emailTimeout = setTimeout(() => {
+                        fetch('/Account/CheckEmail?email=' + encodeURIComponent(email))
+                            .then(response => response.json())
+                            .then(data => {
+                                if (data.available) {
+                                    emailAvailable.textContent = '✓ Email uygun';
+                                    emailAvailable.className = 'form-text text-success';
+                                } else {
+                                    emailAvailable.textContent = '✗ Bu email kullanılıyor';
+                                    emailAvailable.className = 'form-text text-danger';
+                                }
+                            })
+                            .catch(error => {
+                                console.error('Email check error:', error);
+                            });
+                    }, 500);
+                });
+            }
+        })();
+    </script>
+}

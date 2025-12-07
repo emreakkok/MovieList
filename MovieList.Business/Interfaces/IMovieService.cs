@@ -1,4 +1,5 @@
 ﻿using MovieList.Core.DTOs.Movie;
+using MovieList.Core.Entities;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,13 +10,9 @@ namespace MovieList.Business.Interfaces
 {
     public interface IMovieService
     {
-        // Ana sayfa için popüler filmleri getirir
-        Task<IEnumerable<MovieDto>> GetPopularMoviesAsync(int count = 20);
-
-        // Film detaylarını, yorumları ve kullanıcının etkileşim durumunu (izledi mi/beğendi mi) içerir.
         Task<MovieDetailDto?> GetMovieDetailAsync(int movieId, int? currentUserId);
-
-        // Arama sorgularını yönetir
+        Task<IEnumerable<MovieDto>> GetPopularMoviesAsync(int count = 20);
         Task<IEnumerable<MovieDto>> SearchMoviesAsync(string searchTerm);
+        Task<Movie?> SaveMovieFromTmdbAsync(int tmdbId);
     }
 }

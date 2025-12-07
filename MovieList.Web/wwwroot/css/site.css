@@ -1,22 +1,226 @@
-html {
-  font-size: 14px;
+:root {
+    /* Renk Paleti Tanýmlarý */
+    --main-bg: #313647; /* Ana Arka Plan */
+    --card-bg: #435663; /* Kart/Kutu Arka Planý */
+    --accent-green: #A3B087; /* Vurgu 1 (Yeþil - Muted Text, Borders) */
+    --accent-cream: #FFF8D4; /* Vurgu 2 (Krem - Ana Metin, Baþlýklar) */
 }
 
-@media (min-width: 768px) {
-  html {
-    font-size: 16px;
-  }
+html, body {
+    height: 100%;
+    background-color: var(--main-bg);
+    color: var(--accent-cream);
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
-.btn:focus, .btn:active:focus, .btn-link.nav-link:focus, .form-control:focus, .form-check-input:focus {
-  box-shadow: 0 0 0 0.1rem white, 0 0 0 0.25rem #258cfb;
+/* --- Metin Renkleri --- */
+h1, h2, h3, h4, h5, h6, .h1, .h2, .h3, .h4, .h5, .h6 {
+    color: var(--accent-cream);
+    font-weight: 600;
 }
 
-html {
-  position: relative;
-  min-height: 100%;
+a {
+    color: var(--accent-green);
+    text-decoration: none;
+    transition: color 0.2s;
 }
 
-body {
-  margin-bottom: 60px;
+    a:hover {
+        color: var(--accent-cream);
+    }
+
+.text-muted {
+    color: var(--accent-green) !important; /* Bootstrap'in gri rengini yeþilimizle deðiþtiriyoruz */
+    opacity: 0.8;
+}
+
+.text-white {
+    color: var(--accent-cream) !important;
+}
+
+.text-dark {
+    color: var(--accent-cream) !important; /* Kart baþlýklarýndaki dark class'ýný eziyoruz */
+}
+
+/* --- Navbar --- */
+.navbar {
+    background-color: var(--main-bg) !important;
+    border-bottom: 1px solid var(--card-bg);
+}
+
+.navbar-brand {
+    color: var(--accent-cream) !important;
+    font-weight: bold;
+    font-size: 1.5rem;
+}
+
+.nav-link {
+    color: var(--accent-green) !important;
+}
+
+    .nav-link:hover, .nav-link.active {
+        color: var(--accent-cream) !important;
+    }
+
+/* --- Form Elemanlarý (Arama Çubuðu) --- */
+.form-control {
+    background-color: var(--card-bg);
+    border: 1px solid var(--accent-green);
+    color: var(--accent-cream);
+}
+
+    .form-control:focus {
+        background-color: var(--card-bg);
+        color: var(--accent-cream);
+        border-color: var(--accent-cream);
+        box-shadow: 0 0 0 0.25rem rgba(163, 176, 135, 0.25); /* Yeþil gölge */
+    }
+
+    .form-control::placeholder {
+        color: var(--accent-green);
+        opacity: 0.6;
+    }
+
+/* --- Kartlar (Movies) --- */
+.card {
+    background-color: var(--card-bg);
+    border: 1px solid rgba(163, 176, 135, 0.1); /* Hafif yeþil sýnýr */
+    color: var(--accent-cream);
+}
+
+.movie-card {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+    .movie-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 20px rgba(0,0,0,0.3);
+        border-color: var(--accent-green);
+    }
+
+.card-title {
+    color: var(--accent-cream);
+}
+
+/* --- Butonlar --- */
+.btn-primary {
+    background-color: var(--accent-green);
+    border-color: var(--accent-green);
+    color: var(--main-bg); /* Yazý koyu olsun ki okunsun */
+    font-weight: 600;
+}
+
+    .btn-primary:hover {
+        background-color: var(--accent-cream);
+        border-color: var(--accent-cream);
+        color: var(--main-bg);
+    }
+
+.btn-outline-light {
+    color: var(--accent-green);
+    border-color: var(--accent-green);
+}
+
+    .btn-outline-light:hover {
+        background-color: var(--accent-green);
+        color: var(--main-bg);
+    }
+
+/* --- Rozetler (Badges) --- */
+.badge.bg-warning {
+    background-color: var(--accent-green) !important;
+    color: var(--main-bg) !important;
+}
+
+.badge.bg-secondary {
+    background-color: var(--main-bg) !important;
+    border: 1px solid var(--accent-green);
+    color: var(--accent-cream) !important;
+}
+
+/* --- Footer --- */
+.footer {
+    border-top: 1px solid var(--card-bg) !important;
+    color: var(--accent-green);
+    background-color: var(--main-bg);
+    padding: 20px 0;
+}
+
+/* Auth Sayfalarý */
+.card .form-label {
+    color: var(--accent-cream);
+    font-weight: 500;
+}
+
+.form-check-label {
+    color: var(--accent-green);
+}
+
+.form-check-input {
+    background-color: var(--card-bg);
+    border-color: var(--accent-green);
+}
+
+    .form-check-input:checked {
+        background-color: var(--accent-green);
+        border-color: var(--accent-green);
+    }
+
+/* Dropdown Menu */
+.dropdown-menu {
+    background-color: var(--card-bg);
+    border: 1px solid var(--accent-green);
+}
+
+.dropdown-item {
+    color: var(--accent-cream);
+}
+
+    .dropdown-item:hover {
+        background-color: var(--main-bg);
+        color: var(--accent-green);
+    }
+
+/* Alert Messages */
+.alert {
+    border-radius: 8px;
+}
+
+.alert-success {
+    background-color: rgba(163, 176, 135, 0.2);
+    border-color: var(--accent-green);
+    color: var(--accent-cream);
+}
+
+.alert-danger {
+    background-color: rgba(255, 107, 107, 0.2);
+    border-color: #ff6b6b;
+    color: var(--accent-cream);
+}
+
+.alert-info {
+    background-color: rgba(163, 176, 135, 0.1);
+    border-color: var(--accent-green);
+    color: var(--accent-cream);
+}
+
+/* Validation */
+.text-danger {
+    color: #ff6b6b !important;
+}
+
+.text-success {
+    color: var(--accent-green) !important;
+}
+
+/* Form Validation */
+.field-validation-error {
+    color: #ff6b6b;
+    font-size: 0.875rem;
+}
+
+.input-validation-error {
+    border-color: #ff6b6b !important;
 }

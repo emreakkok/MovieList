@@ -1,25 +1,12 @@
-﻿using MovieList.Core.DTOs.Review;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿// MovieList.Core/DTOs/Movie/MovieDetailDto.cs
+using MovieList.Core.DTOs.Review;
 
 namespace MovieList.Core.DTOs.Movie
 {
-    public class MovieDetailDto
+    // MovieDto'dan miras alıyoruz, böylece Title, FullPosterUrl vb. hepsi buraya gelir.
+    public class MovieDetailDto : MovieDto
     {
-        // Temel film bilgileri
-        public int Id { get; set; }
-        public int TmdbId { get; set; }
-        public string Title { get; set; } = string.Empty;
-        public string? Overview { get; set; }
-        public string? PosterPath { get; set; }
-        public DateTime? ReleaseDate { get; set; }
-        public int? Runtime { get; set; }
-        public decimal? VoteAverage { get; set; }
-        public int WatchCount { get; set; }
-        public int LikeCount { get; set; }
+        public string? BackdropPath { get; set; } // MovieDto'da olmayan ek özellik
 
         // Film Yorumları
         public List<ReviewDto> Reviews { get; set; } = new();

@@ -3,26 +3,24 @@ using MovieList.Core.DTOs.Movie;
 using MovieList.Core.DTOs.Review;
 using MovieList.Core.Entities;
 using MovieList.Core.Interfaces;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace MovieList.Business.Services
 {
     public class MovieService : IMovieService
     {
         private readonly IMovieRepository _movieRepository;
+        private readonly ITmdbApiService _tmdbApiService;
 
-        public MovieService(IMovieRepository movieRepository)
+        public MovieService(
+            IMovieRepository movieRepository,
+            ITmdbApiService tmdbApiService)
         {
             _movieRepository = movieRepository;
+            _tmdbApiService = tmdbApiService;
         }
 
         private MovieDto MapToMovieDto(Movie m)
         {
-            // Tekrarlanan manuel dönüşüm metodunu ayırıyoruz
             return new MovieDto
             {
                 Id = m.Id,
@@ -38,13 +36,48 @@ namespace MovieList.Business.Services
             };
         }
 
+        /// <summary>
+        /// TMDB'den filmi database'e kaydeder veya varsa günceller
+        /// </summary>
+        public async Task<Movie?> SaveMovieFromTmdbAsync(int tmdbId)
+        {
+            // Önce database'de var mı kontrol et
+            var existingMovie = await _movieRepository.GetByTmdbIdAsync(tmdbId);
+            if (existingMovie != null)
+                return existingMovie;
+
+            // TMDB'den çek
+            var tmdbMovie = await _tmdbApiService.GetMovieDetailsAsync(tmdbId);
+            if (tmdbMovie == null)
+                return null;
+
+            // Database'e kaydet
+            var movie = new Movie
+            {
+                TmdbId = tmdbMovie.Id,
+                Title = tmdbMovie.Title,
+                OriginalTitle = tmdbMovie.OriginalTitle,
+                Overview = tmdbMovie.Overview,
+                PosterPath = tmdbMovie.PosterPath,
+                BackdropPath = tmdbMovie.BackdropPath,
+                ReleaseDate = DateTime.TryParse(tmdbMovie.ReleaseDate, out var date) ? date : null,
+                Runtime = tmdbMovie.Runtime,
+                VoteAverage = tmdbMovie.VoteAverage,
+                VoteCount = tmdbMovie.VoteCount,
+                Genres = tmdbMovie.Genres != null
+                    ? string.Join(",", tmdbMovie.Genres.Select(g => g.Name))
+                    : null
+            };
+
+            return await _movieRepository.AddAsync(movie);
+        }
+
         public async Task<MovieDetailDto?> GetMovieDetailAsync(int movieId, int? currentUserId)
         {
             var movieEntity = await _movieRepository.GetMovieWithDetailsAsync(movieId);
             if (movieEntity == null)
                 return null;
 
-            // Film DTO’su oluşturma
             var dto = new MovieDetailDto
             {
                 Id = movieEntity.Id,
@@ -52,6 +85,7 @@ namespace MovieList.Business.Services
                 Title = movieEntity.Title,
                 Overview = movieEntity.Overview,
                 PosterPath = movieEntity.PosterPath,
+                BackdropPath = movieEntity.BackdropPath,
                 ReleaseDate = movieEntity.ReleaseDate,
                 Runtime = movieEntity.Runtime,
                 VoteAverage = movieEntity.VoteAverage,
@@ -72,39 +106,74 @@ namespace MovieList.Business.Services
                     })
                     .ToList()
             };
-            // Eğer kullanıcı giriş yapmamışsa, kişiye özel alanlar false/null döner
+
             if (currentUserId == null)
                 return dto;
 
-            // Kullanıcının ilişki bilgisi
             var userMovie = movieEntity.UserMovies
                 .FirstOrDefault(um => um.UserId == currentUserId);
-
             var userLike = movieEntity.MovieLikes
                 .Any(ml => ml.UserId == currentUserId);
 
-            // UserMovie bilgilerini ekliyoruz
             dto.IsWatched = userMovie?.IsWatched ?? false;
             dto.UserRating = userMovie?.Rating;
             dto.IsFavorite = userMovie?.IsFavorite ?? false;
-
-            // Like bilgisi
             dto.IsLikedByUser = userLike;
 
             return dto;
-
         }
 
+        /// <summary>
+        /// TMDB'den popüler filmleri çeker ve database'e kaydeder
+        /// </summary>
         public async Task<IEnumerable<MovieDto>> GetPopularMoviesAsync(int count = 20)
         {
-            var movies = await _movieRepository.GetPopularMoviesAsync(count);
-            return movies.Select(MapToMovieDto).ToList();
+            // TMDB'den çek
+            var tmdbResponse = await _tmdbApiService.GetPopularMoviesAsync();
+            if (tmdbResponse == null || !tmdbResponse.Results.Any())
+                return Enumerable.Empty<MovieDto>();
+
+            var movies = new List<MovieDto>();
+
+            foreach (var tmdbMovie in tmdbResponse.Results.Take(count))
+            {
+                // Database'e kaydet
+                var movie = await SaveMovieFromTmdbAsync(tmdbMovie.Id);
+                if (movie != null)
+                {
+                    movies.Add(MapToMovieDto(movie));
+                }
+            }
+
+            return movies;
         }
 
+        /// <summary>
+        /// TMDB'de arama yapar
+        /// </summary>
         public async Task<IEnumerable<MovieDto>> SearchMoviesAsync(string searchTerm)
         {
-            var movies = await _movieRepository.SearchMoviesAsync(searchTerm);
-            return movies.Select(MapToMovieDto).ToList();
+            if (string.IsNullOrWhiteSpace(searchTerm))
+                return Enumerable.Empty<MovieDto>();
+
+            // TMDB'de ara
+            var tmdbResponse = await _tmdbApiService.SearchMoviesAsync(searchTerm);
+            if (tmdbResponse == null || !tmdbResponse.Results.Any())
+                return Enumerable.Empty<MovieDto>();
+
+            var movies = new List<MovieDto>();
+
+            foreach (var tmdbMovie in tmdbResponse.Results.Take(20))
+            {
+                // Database'e kaydet
+                var movie = await SaveMovieFromTmdbAsync(tmdbMovie.Id);
+                if (movie != null)
+                {
+                    movies.Add(MapToMovieDto(movie));
+                }
+            }
+
+            return movies;
         }
     }
 }
