@@ -31,8 +31,33 @@
                                 <i class="fas fa-fire"></i> Popüler
                             </a>
                         </li>
+
+                        <!-- ✅ Arama Dropdown Eklendi -->
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" id="searchDropdown" role="button" data-bs-toggle="dropdown">
+                                <i class="fas fa-search"></i> Ara
+                            </a>
+                            <ul class="dropdown-menu" style="background-color: var(--card-bg);">
+                                <li>
+                                    <a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#searchModal">
+                                        <i class="fas fa-film"></i> Film Ara
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#userSearchModal">
+                                        <i class="fas fa-users"></i> Kullanıcı Ara
+                                    </a>
+                                </li>
+                            </ul>
+                        </li>
+
                         @if (User.Identity?.IsAuthenticated == true)
                         {
+                            <li class="nav-item">
+                                <a class="nav-link" asp-controller="Watchlist" asp-action="Index">
+                                    <i class="fas fa-bookmark"></i> Watchlist
+                                </a>
+                            </li>
                             <li class="nav-item">
                                 <a class="nav-link" asp-controller="Profile" asp-action="Index" asp-route-id="@User.GetUserId()">
                                     <i class="fas fa-user"></i> Profilim
@@ -40,13 +65,6 @@
                             </li>
                         }
                     </ul>
-
-                    <form class="d-flex me-3" asp-controller="Movie" asp-action="Search" method="get">
-                        <input class="form-control me-2" type="search" name="q" placeholder="Film ara..." style="min-width: 200px;" />
-                        <button class="btn btn-outline-light" type="submit">
-                            <i class="fas fa-search"></i>
-                        </button>
-                    </form>
 
                     <ul class="navbar-nav">
                         @if (User.Identity?.IsAuthenticated == true)
@@ -64,6 +82,7 @@
                                     <li><hr class="dropdown-divider" style="border-color: var(--accent-green);"></li>
                                     <li>
                                         <form asp-controller="Account" asp-action="Logout" method="post" class="d-inline">
+                                            @Html.AntiForgeryToken()
                                             <button type="submit" class="dropdown-item">
                                                 <i class="fas fa-sign-out-alt"></i> Çıkış Yap
                                             </button>
@@ -92,7 +111,6 @@
     </header>
 
     <div class="container">
-
         @if (TempData["SuccessMessage"] != null)
         {
             <div class="alert alert-success alert-dismissible fade show" role="alert">
@@ -120,7 +138,57 @@
         <main role="main" class="pb-3">
             @RenderBody()
         </main>
+    </div>
 
+    <!-- ✅ Film Arama Modal -->
+    <div class="modal fade" id="searchModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content" style="background-color: var(--card-bg);">
+                <div class="modal-header" style="border-bottom: 1px solid var(--accent-green);">
+                    <h5 class="modal-title" style="color: var(--accent-cream);">
+                        <i class="fas fa-film"></i> Film Ara
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form asp-controller="Movie" asp-action="Search" method="get">
+                        <div class="input-group mb-3">
+                            <input type="text" name="q" class="form-control form-control-lg"
+                                   placeholder="Film adı yazın..." autofocus>
+                            <button class="btn btn-primary" type="submit" style="background-color: var(--accent-green); border: none;">
+                                <i class="fas fa-search"></i> Ara
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ✅ Kullanıcı Arama Modal -->
+    <div class="modal fade" id="userSearchModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content" style="background-color: var(--card-bg);">
+                <div class="modal-header" style="border-bottom: 1px solid var(--accent-green);">
+                    <h5 class="modal-title" style="color: var(--accent-cream);">
+                        <i class="fas fa-users"></i> Kullanıcı Ara
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="text" id="userSearchInput" class="form-control form-control-lg mb-3"
+                           placeholder="Kullanıcı adı yazın...">
+                    <div id="userSearchResults" style="max-height: 400px; overflow-y: auto;"></div>
+
+                    <!-- Tam arama için link -->
+                    <div class="text-center mt-3">
+                        <a href="#" id="fullSearchLink" class="text-muted" style="display:none;">
+                            <i class="fas fa-arrow-right"></i> Tüm sonuçları görmek için tıklayın
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 
     <footer class="footer text-muted">
@@ -132,6 +200,98 @@
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
+
+    <!-- ✅ Kullanıcı Arama Script -->
+    <script>
+        let userSearchTimeout;
+
+        const userSearchInput = document.getElementById('userSearchInput');
+        const userSearchResults = document.getElementById('userSearchResults');
+        const fullSearchLink = document.getElementById('fullSearchLink');
+
+        if (userSearchInput) {
+            userSearchInput.addEventListener('input', function() {
+                clearTimeout(userSearchTimeout);
+                const query = this.value.trim();
+
+                if (query.length < 2) {
+                    userSearchResults.innerHTML = '';
+                    fullSearchLink.style.display = 'none';
+                    return;
+                }
+
+                userSearchTimeout = setTimeout(() => {
+                    fetch('/Search/SearchUsersJson?q=' + encodeURIComponent(query))
+                        .then(response => response.json())
+                        .then(users => {
+                            if (users.length === 0) {
+                                userSearchResults.innerHTML = '<p class="text-muted text-center">Kullanıcı bulunamadı</p>';
+                                fullSearchLink.style.display = 'none';
+                                return;
+                            }
+
+                            // İlk 5 sonucu göster
+                            const displayUsers = users.slice(0, 5);
+
+                            userSearchResults.innerHTML = displayUsers.map(user => `
+                                <a href="/Profile/Index/${user.id}" class="text-decoration-none">
+                                    <div class="card mb-2" style="background-color: var(--main-bg); cursor: pointer; border: 1px solid var(--accent-green);">
+                                        <div class="card-body d-flex align-items-center p-2">
+                                            ${user.profileImage && user.profileImage !== '/images/default-avatar.png'
+                                                ? `<img src="${user.profileImage}" class="rounded-circle me-3" style="width: 50px; height: 50px; object-fit: cover; border: 2px solid var(--accent-green);">`
+                                                : `<div class="rounded-circle me-3 d-flex align-items-center justify-content-center" style="width: 50px; height: 50px; background-color: var(--card-bg); border: 2px solid var(--accent-green);"><i class="fas fa-user" style="color: var(--accent-green);"></i></div>`
+                                            }
+                                            <div class="flex-grow-1">
+                                                <strong style="color: var(--accent-cream);">${user.username}</strong>
+                                                ${user.bio ? `<br><small class="text-muted">${user.bio.length > 50 ? user.bio.substring(0, 50) + '...' : user.bio}</small>` : ''}
+                                            </div>
+                                            <i class="fas fa-arrow-right" style="color: var(--accent-green);"></i>
+                                        </div>
+                                    </div>
+                                </a>
+                            `).join('');
+
+                            // Eğer 5'ten fazla sonuç varsa "Tüm sonuçları gör" linkini göster
+                            if (users.length > 5) {
+                                fullSearchLink.style.display = 'block';
+                                fullSearchLink.href = '/Search/Users?q=' + encodeURIComponent(query);
+                            } else {
+                                fullSearchLink.style.display = 'none';
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Arama hatası:', error);
+                            userSearchResults.innerHTML = '<p class="text-danger text-center">Bir hata oluştu</p>';
+                        });
+                }, 500);
+            });
+        }
+
+        // Modal açıldığında input'a focus yap
+        const userSearchModalEl = document.getElementById('userSearchModal');
+        if (userSearchModalEl) {
+            userSearchModalEl.addEventListener('shown.bs.modal', function () {
+                userSearchInput.focus();
+            });
+
+            // Modal kapandığında temizle
+            userSearchModalEl.addEventListener('hidden.bs.modal', function () {
+                userSearchInput.value = '';
+                userSearchResults.innerHTML = '';
+                fullSearchLink.style.display = 'none';
+            });
+        }
+
+        // Film arama modal'ı için de focus
+        const searchModalEl = document.getElementById('searchModal');
+        if (searchModalEl) {
+            searchModalEl.addEventListener('shown.bs.modal', function () {
+                const filmSearchInput = searchModalEl.querySelector('input[name="q"]');
+                if (filmSearchInput) filmSearchInput.focus();
+            });
+        }
+    </script>
+
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>

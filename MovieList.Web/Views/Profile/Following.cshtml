@@ -1,0 +1,75 @@
+﻿@model IEnumerable<MovieList.Core.DTOs.User.UserDto>
+
+@{
+    ViewData["Title"] = $"{ViewBag.Username} - Takip Edilenler";
+}
+
+<div class="container mt-4">
+    <div class="mb-4">
+        <a asp-controller="Profile" asp-action="Index" asp-route-id="@ViewBag.UserId"
+           class="btn btn-outline-light">
+            <i class="fas fa-arrow-left"></i> Profile Dön
+        </a>
+    </div>
+
+    <h2 class="mb-4" style="color: var(--accent-cream);">
+        <i class="fas fa-user-check"></i> @ViewBag.Username - Takip Edilenler
+        <span class="badge bg-secondary">@Model.Count()</span>
+    </h2>
+
+    @if (Model.Any())
+    {
+        <div class="row">
+            @foreach (var user in Model)
+            {
+                <div class="col-md-6 col-lg-4 mb-3">
+                    <div class="card h-100" style="background-color: var(--card-bg);">
+                        <div class="card-body d-flex align-items-center">
+                            <a asp-controller="Profile" asp-action="Index" asp-route-id="@user.Id">
+                                @if (!string.IsNullOrEmpty(user.ProfileImageUrl))
+                                {
+                                    <img src="@user.ProfileImageUrl"
+                                         class="rounded-circle me-3"
+                                         style="width: 60px; height: 60px; object-fit: cover; border: 2px solid var(--accent-green);">
+                                }
+                                else
+                                {
+                                    <div class="rounded-circle me-3 d-flex align-items-center justify-content-center"
+                                         style="width: 60px; height: 60px; background-color: var(--main-bg); border: 2px solid var(--accent-green);">
+                                        <i class="fas fa-user fa-2x" style="color: var(--accent-green);"></i>
+                                    </div>
+                                }
+                            </a>
+
+                            <div class="flex-grow-1">
+                                <h5 class="mb-1">
+                                    <a asp-controller="Profile" asp-action="Index" asp-route-id="@user.Id"
+                                       style="color: var(--accent-cream); text-decoration: none;">
+                                        @user.Username
+                                    </a>
+                                </h5>
+                                @if (!string.IsNullOrEmpty(user.Bio))
+                                {
+                                    <p class="mb-0 text-muted small">
+                                        @(user.Bio.Length > 60 ? user.Bio.Substring(0, 60) + "..." : user.Bio)
+                                    </p>
+                                }
+                            </div>
+
+                            <a asp-controller="Profile" asp-action="Index" asp-route-id="@user.Id"
+                               class="btn btn-sm btn-outline-light">
+                                Profil
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+    else
+    {
+        <div class="alert alert-info">
+            <i class="fas fa-info-circle"></i> Henüz kimse takip edilmiyor.
+        </div>
+    }
+</div>

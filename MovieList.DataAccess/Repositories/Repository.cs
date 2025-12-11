@@ -48,6 +48,10 @@ namespace MovieList.DataAccess.Repositories
             await _context.SaveChangesAsync();
 
         }
+        public async Task<T?> FirstOrDefaultAsync(Expression<Func<T, bool>> predicate)
+        {
+            return await _dbSet.FirstOrDefaultAsync(predicate);
+        }
 
         public async Task<IEnumerable<T>> FindAsync(Expression<Func<T, bool>> predicate)
         {

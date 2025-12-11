@@ -16,5 +16,6 @@ namespace MovieList.Core.Interfaces
         Task<IEnumerable<Movie>> SearchMoviesAsync(string searchTerm);
 
         Task UpdateMovieStatsAsync(int movieId);
+        Task<IEnumerable<Movie>> GetAllWithUserMoviesAsync();
     }
 }

@@ -11,6 +11,8 @@ namespace MovieList.Core.Entities
         public int UserId { get; set; }
         public int MovieId { get; set; }
 
+        public DateTime AddedDate { get; set; }
+
         public virtual User User { get; set; } = null!;
         public virtual Movie Movie { get; set; } = null!;
     }

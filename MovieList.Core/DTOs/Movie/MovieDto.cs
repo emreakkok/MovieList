@@ -19,6 +19,8 @@ namespace MovieList.Core.DTOs.Movie
         public int WatchCount { get; set; }
         public int LikeCount { get; set; }
 
+        public int? UserRating { get; set; }
+
         public string FullPosterUrl
         {
             get

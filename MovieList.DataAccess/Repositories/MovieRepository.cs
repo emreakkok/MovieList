@@ -75,5 +75,12 @@ namespace MovieList.DataAccess.Repositories
             await _context.SaveChangesAsync();
 
         }
+
+        public async Task<IEnumerable<Movie>> GetAllWithUserMoviesAsync()
+        {
+            return await _dbSet
+                .Include(m => m.UserMovies)
+                .ToListAsync();
+        }
     }
 }

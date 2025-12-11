@@ -1,4 +1,5 @@
-﻿using MovieList.Business.Interfaces;
+﻿using Microsoft.EntityFrameworkCore;
+using MovieList.Business.Interfaces;
 using MovieList.Core.DTOs.Movie;
 using MovieList.Core.DTOs.Review;
 using MovieList.Core.Entities;
@@ -10,13 +11,16 @@ namespace MovieList.Business.Services
     {
         private readonly IMovieRepository _movieRepository;
         private readonly ITmdbApiService _tmdbApiService;
+        private readonly IWatchlistRepository _watchlistRepository;
 
         public MovieService(
             IMovieRepository movieRepository,
-            ITmdbApiService tmdbApiService)
+            ITmdbApiService tmdbApiService,
+            IWatchlistRepository watchlistRepository)
         {
             _movieRepository = movieRepository;
             _tmdbApiService = tmdbApiService;
+            _watchlistRepository = watchlistRepository;
         }
 
         private MovieDto MapToMovieDto(Movie m)
@@ -74,9 +78,25 @@ namespace MovieList.Business.Services
 
         public async Task<MovieDetailDto?> GetMovieDetailAsync(int movieId, int? currentUserId)
         {
+            
+
             var movieEntity = await _movieRepository.GetMovieWithDetailsAsync(movieId);
             if (movieEntity == null)
+            {
                 return null;
+            }
+
+            // ✅ Kullanıcı puan ortalamasını hesapla
+            var userRatings = movieEntity.UserMovies
+                .Where(um => um.Rating.HasValue)
+                .Select(um => um.Rating.Value)
+                .ToList();
+
+            decimal? userAverageRating = null;
+            if (userRatings.Any())
+            {
+                userAverageRating = (decimal)userRatings.Average();
+            }
 
             var dto = new MovieDetailDto
             {
@@ -91,6 +111,11 @@ namespace MovieList.Business.Services
                 VoteAverage = movieEntity.VoteAverage,
                 WatchCount = movieEntity.WatchCount,
                 LikeCount = movieEntity.LikeCount,
+
+                // ✅ Kullanıcı puanları
+                UserAverageRating = userAverageRating,
+                UserRatingCount = userRatings.Count,
+
                 Reviews = movieEntity.Reviews
                     .OrderByDescending(r => r.CreatedDate)
                     .Select(r => new ReviewDto
@@ -120,9 +145,12 @@ namespace MovieList.Business.Services
             dto.IsFavorite = userMovie?.IsFavorite ?? false;
             dto.IsLikedByUser = userLike;
 
+            dto.IsInWatchlist = await _watchlistRepository.IsInWatchlistAsync(
+                currentUserId.Value,
+                movieId);
+
             return dto;
         }
-
         /// <summary>
         /// TMDB'den popüler filmleri çeker ve database'e kaydeder
         /// </summary>
@@ -174,6 +202,23 @@ namespace MovieList.Business.Services
             }
 
             return movies;
+        }
+
+
+        public async Task<IEnumerable<MovieDto>> GetMostRatedMoviesAsync(int count = 30)
+        {
+            // UserMovies ilişkisiyle birlikte çek
+            var movies = await _movieRepository.GetAllWithUserMoviesAsync();
+
+            // En çok oy alan filmleri sırala
+            var sortedMovies = movies
+                .Where(m => m.UserMovies.Any(um => um.Rating.HasValue))  // Sadece oylanmış filmler
+                .OrderByDescending(m => m.UserMovies.Count(um => um.Rating.HasValue))  // Oy sayısına göre
+                .ThenByDescending(m => m.UserMovies.Where(um => um.Rating.HasValue).Average(um => um.Rating.Value))  // Sonra ortalamaya göre
+                .Take(count)
+                .ToList();
+
+            return sortedMovies.Select(MapToMovieDto).ToList();
         }
     }
 }

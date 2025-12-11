@@ -8,6 +8,11 @@ namespace MovieList.Core.DTOs.Movie
     {
         public string? BackdropPath { get; set; } // MovieDto'da olmayan ek özellik
 
+        public bool IsInWatchlist { get; set; }
+
+        public decimal? UserAverageRating { get; set; }  // Kullanıcıların verdiği ortalama puan
+        public int UserRatingCount { get; set; }  // Kaç kullanıcı puan verdi
+
         // Film Yorumları
         public List<ReviewDto> Reviews { get; set; } = new();
 

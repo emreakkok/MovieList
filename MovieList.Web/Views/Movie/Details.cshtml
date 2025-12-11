@@ -23,27 +23,50 @@
         <div class="mt-3 d-grid gap-2">
             @if (User.Identity?.IsAuthenticated == true)
             {
-                <!-- Giriş Yapılmış - Butonlar Aktif -->
-                <button class="btn btn-primary" onclick="markAsWatched(@Model.Id)">
-                    <i class="fas fa-check"></i> @(Model.IsWatched ? "İzlendi ✓" : "İzledim")
-                </button>
-                <button class="btn btn-outline-light" onclick="addToWatchlist(@Model.Id)">
-                    <i class="fas fa-bookmark"></i> Listeye Ekle
-                </button>
-                <button class="btn btn-outline-light"
-                        style="color: @(Model.IsLikedByUser ? "#ff6b6b" : "inherit"); border-color: #ff6b6b;"
-                        onclick="likeMovie(@Model.Id)">
+                <!-- İzledim Butonu -->
+                @if (Model.IsWatched)
+                {
+                    <button class="btn btn-success" onclick="unmarkAsWatched(@Model.Id)">
+                        <i class="fas fa-check"></i> İzlendi ✓
+                    </button>
+                }
+                else
+                {
+                    <button class="btn btn-primary" onclick="markAsWatched(@Model.Id)">
+                        <i class="fas fa-check"></i> İzledim
+                    </button>
+                }
+
+                <!-- Watchlist Butonu -->
+                @if (Model.IsInWatchlist)
+                {
+                    <button class="btn btn-secondary" onclick="removeFromWatchlist(@Model.Id)">
+                        <i class="fas fa-bookmark"></i> Watchlist'te ✓
+                    </button>
+                }
+                else if (!Model.IsWatched)
+                {
+                    <!-- Sadece izlenmediyse watchlist'e eklenebilir -->
+                    <button class="btn btn-outline-light" onclick="addToWatchlist(@Model.Id)">
+                        <i class="fas fa-bookmark"></i> Watchlist'e Ekle
+                    </button>
+                }
+
+                <!-- Beğen Butonu - Toggle -->
+                <button class="btn @(Model.IsLikedByUser ? "btn-danger" : "btn-outline-light")"
+                        style="@(Model.IsLikedByUser ? "" : "color: #ff6b6b; border-color: #ff6b6b;")"
+                        onclick="toggleLike(@Model.Id)">
                     <i class="fas fa-heart"></i> @(Model.IsLikedByUser ? "Beğenildi" : "Beğen")
                 </button>
             }
             else
             {
-                <!-- Giriş Yapılmamış - Uyarı Göster -->
+                <!-- Giriş Yapılmamış -->
                 <button class="btn btn-primary" onclick="showLoginAlert()">
                     <i class="fas fa-check"></i> İzledim
                 </button>
                 <button class="btn btn-outline-light" onclick="showLoginAlert()">
-                    <i class="fas fa-bookmark"></i> Listeye Ekle
+                    <i class="fas fa-bookmark"></i> Watchlist'e Ekle
                 </button>
                 <button class="btn btn-outline-light" style="color: #ff6b6b; border-color: #ff6b6b;" onclick="showLoginAlert()">
                     <i class="fas fa-heart"></i> Beğen
@@ -109,21 +132,36 @@
 
         <!-- İstatistikler -->
         <div class="row mt-4 text-center">
-            <div class="col-md-4">
+            <div class="col-md-3">
                 <div class="p-3 rounded border border-secondary">
                     <i class="fas fa-eye fa-2x mb-2" style="color: var(--accent-green);"></i>
                     <h3>@Model.WatchCount</h3>
                     <span class="text-muted">İzlenme</span>
                 </div>
             </div>
-            <div class="col-md-4">
+            <div class="col-md-3">
                 <div class="p-3 rounded border border-secondary">
                     <i class="fas fa-heart fa-2x mb-2 text-danger"></i>
                     <h3>@Model.LikeCount</h3>
                     <span class="text-muted">Beğeni</span>
                 </div>
             </div>
-            <div class="col-md-4">
+            <div class="col-md-3">
+                <div class="p-3 rounded border border-secondary">
+                    <i class="fas fa-star fa-2x mb-2 text-warning"></i>
+                    @if (Model.UserAverageRating.HasValue)
+                    {
+                        <h3>@Model.UserAverageRating.Value.ToString("0.0")</h3>
+                        <span class="text-muted">@Model.UserRatingCount Kullanıcı Puanı</span>
+                    }
+                    else
+                    {
+                        <h3>-</h3>
+                        <span class="text-muted">Henüz puan yok</span>
+                    }
+                </div>
+            </div>
+            <div class="col-md-3">
                 <div class="p-3 rounded border border-secondary">
                     <i class="fas fa-comment fa-2x mb-2" style="color: var(--accent-cream);"></i>
                     <h3>@Model.Reviews.Count</h3>
@@ -220,48 +258,133 @@
 
 @section Scripts {
     <script>
+        const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value;
+
         function showLoginAlert() {
             alert('Bu özelliği kullanmak için giriş yapmalısınız!');
             window.location.href = '/Account/Login?returnUrl=' + encodeURIComponent(window.location.pathname);
         }
 
         function markAsWatched(movieId) {
-            // TODO: API çağrısı yapılacak
-            console.log('Mark as watched:', movieId);
-            alert('İzlendi olarak işaretlendi! (API entegrasyonu yapılacak)');
+            if (!token) return;
+
+            fetch('/UserMovie/MarkAsWatched/' + movieId, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'RequestVerificationToken': token
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                alert(data.message);
+                if (data.success) {
+                    location.reload();
+                }
+            })
+            .catch(error => console.error('Error:', error));
         }
 
-        function addToWatchlist(movieId) {
-            // TODO: API çağrısı yapılacak
-            console.log('Add to watchlist:', movieId);
-            alert('Listeye eklendi! (API entegrasyonu yapılacak)');
+        function unmarkAsWatched(movieId) {
+            if (confirm('Bu filmi izlenmedi olarak işaretlemek istediğinize emin misiniz? (Puanınız da kaldırılacak)')) {
+                fetch('/UserMovie/UnmarkAsWatched/' + movieId, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'RequestVerificationToken': token
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    alert(data.message);
+                    if (data.success) {
+                        location.reload();
+                    }
+                })
+                .catch(error => console.error('Error:', error));
+            }
         }
 
-        function likeMovie(movieId) {
-            // TODO: API çağrısı yapılacak
-            console.log('Like movie:', movieId);
-            alert('Beğenildi! (API entegrasyonu yapılacak)');
+        function toggleLike(movieId) {
+            if (!token) return;
+
+            fetch('/UserMovie/ToggleLike/' + movieId, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'RequestVerificationToken': token
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    location.reload();
+                }
+            })
+            .catch(error => console.error('Error:', error));
         }
 
         function rateMovie(movieId, rating) {
-            // TODO: API çağrısı yapılacak
-            console.log('Rate movie:', movieId, 'Rating:', rating);
-            alert(`Film ${rating}/10 puan aldı! (API entegrasyonu yapılacak)`);
-            // location.reload(); // API'den sonra güncellenecek
+            if (!token) return;
+
+            fetch(`/UserMovie/Rate/${movieId}?rating=${rating}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'RequestVerificationToken': token
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    location.reload();
+                }
+            })
+            .catch(error => console.error('Error:', error));
+        }
+
+        function addToWatchlist(movieId) {
+            if (!token) return;
+
+            fetch('/Watchlist/Add/' + movieId, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'RequestVerificationToken': token
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                alert(data.message);
+                if (data.success) {
+                    location.reload();
+                }
+            })
+            .catch(error => console.error('Error:', error));
+        }
+
+        function removeFromWatchlist(movieId) {
+            if (!token) return;
+
+            fetch('/Watchlist/Remove/' + movieId, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'RequestVerificationToken': token
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                alert(data.message);
+                if (data.success) {
+                    location.reload();
+                }
+            })
+            .catch(error => console.error('Error:', error));
         }
 
         function submitReview(movieId) {
-            const content = document.getElementById('reviewContent').value.trim();
-
-            if (!content) {
-                alert('Lütfen bir yorum yazın!');
-                return;
-            }
-
-            // TODO: API çağrısı yapılacak
-            console.log('Submit review:', movieId, 'Content:', content);
-            alert('Yorumunuz kaydedildi! (API entegrasyonu yapılacak)');
-            // location.reload(); // API'den sonra güncellenecek
+            alert('Review özelliği yakında eklenecek!');
         }
     </script>
 }

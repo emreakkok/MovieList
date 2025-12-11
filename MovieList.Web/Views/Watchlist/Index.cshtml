@@ -1,0 +1,115 @@
+﻿@model IEnumerable<MovieList.Core.DTOs.Movie.MovieDto>
+
+@{
+    ViewData["Title"] = "İzleme Listem";
+}
+
+<div class="container">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h2 class="mb-3">
+                <i class="fas fa-bookmark"></i> İzleme Listem
+            </h2>
+            <p class="text-muted">İzlemek istediğiniz filmler</p>
+        </div>
+    </div>
+
+    @if (Model.Any())
+    {
+        <div class="row row-cols-2 row-cols-md-4 row-cols-lg-5 g-4">
+            @foreach (var movie in Model)
+            {
+                <div class="col">
+                    <div class="card h-100 movie-card">
+                        <a asp-controller="Movie" asp-action="Details" asp-route-id="@movie.Id" class="text-decoration-none">
+                            @if (!string.IsNullOrEmpty(movie.PosterPath))
+                            {
+                                <img src="@movie.FullPosterUrl"
+                                     class="card-img-top"
+                                     alt="@movie.Title"
+                                     style="height: 300px; object-fit: cover;">
+                            }
+                            else
+                            {
+                                <div class="card-img-top bg-secondary d-flex align-items-center justify-content-center"
+                                     style="height: 300px;">
+                                    <i class="fas fa-film fa-3x text-white"></i>
+                                </div>
+                            }
+
+                            <div class="card-body">
+                                <h6 class="card-title text-dark mb-2" title="@movie.Title">
+                                    @(movie.Title.Length > 30 ? movie.Title.Substring(0, 30) + "..." : movie.Title)
+                                </h6>
+
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <small class="text-muted">
+                                        @movie.ReleaseDate?.Year
+                                    </small>
+
+                                    @if (movie.VoteAverage.HasValue)
+                                    {
+                                        <span class="badge bg-warning text-dark">
+                                            <i class="fas fa-star"></i> @movie.VoteAverage.Value.ToString("0.0")
+                                        </span>
+                                    }
+                                </div>
+
+                                <button class="btn btn-sm btn-danger mt-2 w-100"
+                                        onclick="removeFromWatchlist(event, @movie.Id)">
+                                    <i class="fas fa-trash"></i> Çıkar
+                                </button>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+    else
+    {
+        <div class="text-center py-5">
+            <i class="fas fa-bookmark fa-5x text-muted mb-3"></i>
+            <h4 class="text-muted">İzleme listeniz boş</h4>
+            <p class="text-muted">İzlemek istediğiniz filmleri buraya ekleyin</p>
+            <a asp-controller="Movie" asp-action="Popular" class="btn btn-primary">
+                <i class="fas fa-search"></i> Film Keşfet
+            </a>
+        </div>
+    }
+</div>
+
+@section Scripts {
+    <script>
+        const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value;
+
+        function removeFromWatchlist(event, movieId) {
+            event.preventDefault();
+            event.stopPropagation();
+
+            if (!confirm('Bu filmi watchlist\'ten çıkarmak istediğinize emin misiniz?')) {
+                return;
+            }
+
+            fetch('/Watchlist/Remove/' + movieId, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'RequestVerificationToken': token
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    location.reload();
+                } else {
+                    alert(data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Bir hata oluştu');
+            });
+        }
+    </script>
+}

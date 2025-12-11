@@ -13,7 +13,9 @@ namespace MovieList.Core.Interfaces
         Task<User?> GetByEmailAsync(string email);
         Task<User?> GetUserWithMoviesAsync(int userId);
         // Task<User?> GetUserWithFollowersAsync(int userId);
-        Task<IEnumerable<User>> GetFollowersAsync(int userId);
-        Task<IEnumerable<User>> GetFollowingAsync(int userId);
+        // Task<IEnumerable<User>> GetFollowersAsync(int userId);
+        // Task<IEnumerable<User>> GetFollowingAsync(int userId);
+
+        Task<IEnumerable<User>> SearchUsersAsync(string searchTerm);
     }
 }

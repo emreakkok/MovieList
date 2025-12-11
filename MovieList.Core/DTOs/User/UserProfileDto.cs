@@ -21,6 +21,8 @@ namespace MovieList.Core.DTOs.User
         public int FollowingCount { get; set; }
         public int WatchCountTotal { get; set; } // Toplam izlenen film sayısı
 
+        public IEnumerable<MovieDto> WatchlistMovies { get; set; } = new List<MovieDto>();
+
         // Profil Sayfası Listeleri
         public IEnumerable<MovieDto> FavoriteMovies { get; set; } = new List<MovieDto>();
         public IEnumerable<MovieDto> RecentWatchedMovies { get; set; } = new List<MovieDto>();

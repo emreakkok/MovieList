@@ -1,0 +1,60 @@
+﻿@model IEnumerable<MovieList.Core.DTOs.Movie.MovieDto>
+
+@{
+    ViewData["Title"] = $"{ViewBag.Username} - {ViewBag.Rating} Puan Verdiği Filmler";
+}
+
+<div class="container mt-4">
+    <div class="mb-4">
+        <a asp-controller="Profile" asp-action="Index" asp-route-id="@ViewBag.UserId"
+           class="btn btn-outline-light">
+            <i class="fas fa-arrow-left"></i> Profile Dön
+        </a>
+    </div>
+
+    <h2 class="mb-4" style="color: var(--accent-cream);">
+        <i class="fas fa-star text-warning"></i> @ViewBag.Username - @ViewBag.Rating/10 Puan Verdiği Filmler
+        <span class="badge bg-secondary">@Model.Count() Film</span>
+    </h2>
+
+    @if (Model.Any())
+    {
+        <div class="row">
+            @foreach (var movie in Model)
+            {
+                <div class="col-6 col-md-3 col-lg-2 mb-4">
+                    <div class="card h-100 movie-card border-0 bg-transparent">
+                        <a asp-controller="Movie" asp-action="Details" asp-route-id="@movie.Id">
+                            @if (!string.IsNullOrEmpty(movie.PosterPath))
+                            {
+                                <img src="@movie.FullPosterUrl" class="card-img-top rounded shadow"
+                                     alt="@movie.Title" style="height: 300px; object-fit: cover;">
+                            }
+                            else
+                            {
+                                <div class="card-img-top bg-secondary d-flex align-items-center justify-content-center rounded shadow"
+                                     style="height: 300px;">
+                                    <i class="fas fa-film fa-2x text-white"></i>
+                                </div>
+                            }
+                        </a>
+                        <div class="card-body p-2">
+                            <h6 class="card-title mb-1" style="font-size: 0.9rem;">
+                                <a asp-controller="Movie" asp-action="Details" asp-route-id="@movie.Id"
+                                   style="color: var(--accent-cream); text-decoration: none;">
+                                    @movie.Title
+                                </a>
+                            </h6>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+    else
+    {
+        <div class="alert alert-info">
+            <i class="fas fa-info-circle"></i> Bu puana sahip film bulunamadı.
+        </div>
+    }
+</div>

@@ -1,0 +1,200 @@
+﻿@model MovieList.Core.DTOs.User.UserUpdateDto
+
+@{
+    ViewData["Title"] = "Profili Düzenle";
+}
+
+<div class="container">
+    <div class="row justify-content-center mt-5">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-body p-5">
+                    <h2 class="text-center mb-4">
+                        <i class="fas fa-user-edit"></i> Profili Düzenle
+                    </h2>
+
+                    <form asp-action="EditProfile" method="post" enctype="multipart/form-data">
+                        <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+
+                        <!-- Username -->
+                        <div class="mb-3">
+                            <label asp-for="Username" class="form-label">
+                                <i class="fas fa-user"></i> Kullanıcı Adı
+                            </label>
+                            <input asp-for="Username" class="form-control" />
+                            <span asp-validation-for="Username" class="text-danger"></span>
+                        </div>
+
+                        <!-- Bio -->
+                        <div class="mb-3">
+                            <label asp-for="Bio" class="form-label">
+                                <i class="fas fa-pen"></i> Biyografi
+                            </label>
+                            <textarea asp-for="Bio" class="form-control" rows="4"
+                                      placeholder="Kendiniz hakkında birkaç şey yazın..."></textarea>
+                            <span asp-validation-for="Bio" class="text-danger"></span>
+                        </div>
+
+                        <!-- ✅ Profil Fotoğrafı Dosya Yükleme -->
+                        <div class="mb-4">
+                            <label class="form-label">
+                                <i class="fas fa-image"></i> Profil Fotoğrafı
+                            </label>
+                            @if (!string.IsNullOrEmpty(Model.ProfilePictureUrl))
+                            {
+                                <div class="mb-2">
+                                    <img src="@Model.ProfilePictureUrl" class="rounded-circle"
+                                         style="width: 100px; height: 100px; object-fit: cover;" />
+                                    <p class="text-muted small">Mevcut profil fotoğrafı</p>
+                                </div>
+                            }
+                            <input type="file" name="profilePicture" class="form-control"
+                                   accept=".jpg,.jpeg,.png,.gif" id="profilePictureInput" />
+                            <small class="text-muted">JPEG, PNG veya GIF formatında, maksimum 5MB</small>
+
+                            <!-- Önizleme -->
+                            <div id="imagePreview" class="mt-2" style="display:none;">
+                                <img id="previewImg" class="rounded-circle"
+                                     style="width: 100px; height: 100px; object-fit: cover;" />
+                            </div>
+                        </div>
+
+                        <!-- Favori Filmler -->
+                        <div class="mb-4">
+                            <label class="form-label">
+                                <i class="fas fa-star text-warning"></i> Favori Filmler (En fazla 4)
+                            </label>
+
+                            <!-- Arama -->
+                            <input type="text" id="movieSearch" class="form-control mb-3"
+                                   placeholder="Film adı yazın..." />
+
+                            <!-- Arama Sonuçları -->
+                            <div id="searchResults" class="mb-3"></div>
+
+                            <!-- Seçili Filmler -->
+                            <div id="selectedMovies" class="d-flex flex-wrap gap-2"></div>
+
+                            <!-- Hidden input'lar -->
+                            <div id="favoriteMovieInputs"></div>
+                        </div>
+
+                        <!-- Submit -->
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                <i class="fas fa-save"></i> Kaydet
+                            </button>
+                        </div>
+
+                        <div class="text-center mt-3">
+                            <a asp-controller="Profile" asp-action="Index" asp-route-id="@User.GetUserId()"
+                               class="btn btn-outline-secondary">
+                                <i class="fas fa-times"></i> İptal
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+
+    <script>
+        let selectedMovies = @Html.Raw(Json.Serialize(Model.FavoriteMovieIds));
+        let searchTimeout;
+
+        // Sayfa yüklendiğinde mevcut favori filmleri göster
+        document.addEventListener('DOMContentLoaded', function() {
+            // TODO: Mevcut favori filmleri yükle ve göster
+            updateSelectedMovies();
+        });
+
+        // Film arama
+        document.getElementById('movieSearch').addEventListener('input', function() {
+            clearTimeout(searchTimeout);
+            const query = this.value.trim();
+
+            if (query.length < 2) {
+                document.getElementById('searchResults').innerHTML = '';
+                return;
+            }
+
+            searchTimeout = setTimeout(() => {
+                fetch('/Account/SearchMoviesForFavorites?query=' + encodeURIComponent(query))
+                    .then(response => response.json())
+                    .then(movies => {
+                        const resultsDiv = document.getElementById('searchResults');
+
+                        if (movies.length === 0) {
+                            resultsDiv.innerHTML = '<p class="text-muted">Film bulunamadı</p>';
+                            return;
+                        }
+
+                        resultsDiv.innerHTML = movies.map(movie => `
+                            <div class="card mb-2" style="cursor: pointer;" onclick="selectMovie(${movie.id}, '${movie.title.replace(/'/g, "\\'")}', '${movie.poster}')">
+                                <div class="card-body d-flex align-items-center">
+                                    <img src="${movie.poster}" style="width: 50px; height: 75px; object-fit: cover;" class="me-3">
+                                    <div>
+                                        <strong>${movie.title}</strong>
+                                        <br>
+                                        <small class="text-muted">${movie.year || ''}</small>
+                                    </div>
+                                </div>
+                            </div>
+                        `).join('');
+                    });
+            }, 500);
+        });
+
+        function selectMovie(id, title, poster) {
+            if (selectedMovies.includes(id)) {
+                alert('Bu film zaten seçili');
+                return;
+            }
+
+            if (selectedMovies.length >= 4) {
+                alert('En fazla 4 favori film seçebilirsiniz');
+                return;
+            }
+
+            selectedMovies.push(id);
+            updateSelectedMovies();
+
+            // Arama sonuçlarını temizle
+            document.getElementById('searchResults').innerHTML = '';
+            document.getElementById('movieSearch').value = '';
+        }
+
+        function removeMovie(id) {
+            selectedMovies = selectedMovies.filter(movieId => movieId !== id);
+            updateSelectedMovies();
+        }
+
+        function updateSelectedMovies() {
+            const container = document.getElementById('selectedMovies');
+            const inputsContainer = document.getElementById('favoriteMovieInputs');
+
+            // Görsel gösterim
+            container.innerHTML = selectedMovies.map((id, index) => `
+                <div class="card" style="width: 100px;">
+                    <div class="card-body p-2 text-center position-relative">
+                        <button type="button" class="btn btn-sm btn-danger position-absolute top-0 end-0"
+                                onclick="removeMovie(${id})" style="padding: 0.25rem 0.5rem;">
+                            <i class="fas fa-times"></i>
+                        </button>
+                        <div>Film ${index + 1}</div>
+                        <small class="text-muted">ID: ${id}</small>
+                    </div>
+                </div>
+            `).join('');
+
+            // Hidden input'lar (form submit için)
+            inputsContainer.innerHTML = selectedMovies.map((id, index) => `
+                <input type="hidden" name="FavoriteMovieIds[${index}]" value="${id}" />
+            `).join('');
+        }
+    </script>
+}

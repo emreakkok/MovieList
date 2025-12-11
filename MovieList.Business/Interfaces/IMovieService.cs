@@ -14,5 +14,6 @@ namespace MovieList.Business.Interfaces
         Task<IEnumerable<MovieDto>> GetPopularMoviesAsync(int count = 20);
         Task<IEnumerable<MovieDto>> SearchMoviesAsync(string searchTerm);
         Task<Movie?> SaveMovieFromTmdbAsync(int tmdbId);
+        Task<IEnumerable<MovieDto>> GetMostRatedMoviesAsync(int count = 30);
     }
 }

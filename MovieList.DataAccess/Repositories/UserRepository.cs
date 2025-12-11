@@ -34,6 +34,16 @@ namespace MovieList.DataAccess.Repositories
                 .FirstOrDefaultAsync(u => u.Id == userId);
         }
 
+        public async Task<IEnumerable<User>> SearchUsersAsync(string searchTerm)
+        {
+            return await _dbSet
+                .Where(u => u.UserName.Contains(searchTerm) ||
+                           (u.Email != null && u.Email.Contains(searchTerm)))
+                .OrderBy(u => u.UserName)
+                .Take(20)
+                .ToListAsync();
+        }
+
         /* 
         public async Task<User?> GetUserWithFollowersAsync(int userId)
         {
@@ -46,6 +56,7 @@ namespace MovieList.DataAccess.Repositories
         }
         */
 
+        /*
         public async Task<IEnumerable<User>> GetFollowersAsync(int userId)
         {
             return await _context.Follows
@@ -61,5 +72,6 @@ namespace MovieList.DataAccess.Repositories
                 .Select(f => f.Following)
                 .ToListAsync();
         }
+        */
     }
 }

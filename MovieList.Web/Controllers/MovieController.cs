@@ -52,10 +52,9 @@ namespace MovieList.Web.Controllers
             return View("Search", movies);
         }
 
-        // Popüler
         public async Task<IActionResult> Popular()
         {
-            var movies = await _movieService.GetPopularMoviesAsync(50);
+            var movies = await _movieService.GetMostRatedMoviesAsync(30);
             return View(movies);
         }
     }

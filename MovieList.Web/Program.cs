@@ -86,7 +86,10 @@ builder.Services.ConfigureApplicationCookie(options =>
 builder.Services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
 builder.Services.AddScoped<IMovieRepository, MovieRepository>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
-
+builder.Services.AddScoped<IUserMovieRepository, UserMovieRepository>();
+builder.Services.AddScoped<IFollowRepository, FollowRepository>();
+builder.Services.AddScoped<IWatchlistRepository, WatchlistRepository>();
+builder.Services.AddScoped<IMovieLikeRepository, MovieLikeRepository>();
 
 // HttpClient for TMDB API
 builder.Services.AddHttpClient<ITmdbApiService, TmdbApiService>(client =>
@@ -99,6 +102,9 @@ builder.Services.AddHttpClient<ITmdbApiService, TmdbApiService>(client =>
 builder.Services.AddScoped<IMovieService, MovieService>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<IFollowService, FollowService>();
+builder.Services.AddScoped<IUserMovieService, UserMovieService>();
+builder.Services.AddScoped<IWatchlistService, WatchlistService>();
 
 // Helpers
 builder.Services.AddScoped<JwtHelper>();
