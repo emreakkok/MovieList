@@ -1,6 +1,75 @@
 ﻿@{
-    ViewData["Title"] = "Privacy Policy";
+    ViewData["Title"] = "Gizlilik Politikası";
 }
-<h1>@ViewData["Title"]</h1>
 
-<p>Use this page to detail your site's privacy policy.</p>
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <div class="text-center mb-5">
+                <i class="fas fa-shield-alt fa-4x mb-3" style="color: var(--accent-green);"></i>
+                <h1 class="display-5 fw-bold" style="color: var(--accent-cream);">Gizlilik Politikası</h1>
+                <p class="lead text-muted">Verileriniz ve güvenliğiniz bizim için önemlidir.</p>
+            </div>
+
+            <div class="card border-0 shadow-lg" style="background-color: var(--card-bg);">
+                <div class="card-body p-5">
+
+                    <div class="mb-5">
+                        <h4 style="color: var(--accent-green);">
+                            <i class="fas fa-info-circle me-2"></i>Genel Bilgilendirme
+                        </h4>
+                        <p class="text-muted">
+                            MovieList ("biz", "bizim"), kullanıcılarının gizliliğine saygı duyar. Bu Gizlilik Politikası, web sitemizi ziyaret ettiğinizde veya kullandığınızda bilgilerinizin nasıl toplandığını, kullanıldığını ve korunduğunu açıklar. Bu proje, eğitim ve portföy amaçlı geliştirilmiş bir web uygulamasıdır.
+                        </p>
+                    </div>
+
+                    <hr style="border-color: var(--accent-green); opacity: 0.2;">
+
+                    <div class="mb-5 mt-5">
+                        <h4 style="color: var(--accent-green);">
+                            <i class="fas fa-database me-2"></i>Toplanan Veriler
+                        </h4>
+                        <p class="text-muted">Hizmetlerimizi sağlamak için aşağıdaki bilgileri topluyoruz:</p>
+                        <ul class="text-muted">
+                            <li class="mb-2"><strong>Hesap Bilgileri:</strong> Kayıt olurken sağladığınız kullanıcı adı ve e-posta adresi.</li>
+                            <li class="mb-2"><strong>Kullanıcı Etkileşimleri:</strong> İzlediğiniz filmler, puanlamalarınız, favorileriniz, izleme listeniz (Watchlist) ve yazdığınız yorumlar.</li>
+                            <li class="mb-2"><strong>Teknik Veriler:</strong> IP adresi, tarayıcı türü ve işletim sistemi gibi standart sunucu günlükleri.</li>
+                        </ul>
+                    </div>
+
+                    <hr style="border-color: var(--accent-green); opacity: 0.2;">
+
+                    <div class="mb-5 mt-5">
+                        <h4 style="color: var(--accent-green);">
+                            <i class="fas fa-cookie-bite me-2"></i>Çerezler (Cookies)
+                        </h4>
+                        <p class="text-muted">
+                            Sitemizde kullanıcı deneyimini iyileştirmek ve oturumunuzu açık tutmak için çerezler kullanıyoruz.
+                        </p>
+                        <div class="alert mt-3" style="background-color: rgba(33, 208, 122, 0.1); border: 1px solid var(--accent-green); color: var(--accent-cream);">
+                            <small><i class="fas fa-lock me-1"></i> Kimlik doğrulama işlemleri için <strong>ASP.NET Core Identity</strong> çerezleri kullanılmaktadır. Bu çerezler, güvenli bir şekilde giriş yapmanızı sağlar.</small>
+                        </div>
+                    </div>
+
+                    <hr style="border-color: var(--accent-green); opacity: 0.2;">
+
+                    <div class="mb-5 mt-5">
+                        <h4 style="color: var(--accent-green);">
+                            <i class="fas fa-server me-2"></i>Üçüncü Taraf Servisler
+                        </h4>
+                        <p class="text-muted">
+                            Film verilerini, görsellerini ve detaylarını sağlamak için <strong>The Movie Database (TMDB) API</strong> hizmetini kullanmaktayız. TMDB'nin kendi gizlilik politikası ve kullanım koşulları geçerlidir.
+                        </p>
+                    </div>
+
+                    <hr style="border-color: var(--accent-green); opacity: 0.2;">
+
+                </div>
+            </div>
+
+            <div class="text-center mt-4">
+                <p class="text-muted small">&copy; @DateTime.Now.Year MovieList. Tüm Hakları Saklıdır.</p>
+            </div>
+        </div>
+    </div>
+</div>

@@ -8,18 +8,19 @@
 <div class="container">
     <div class="row mb-4">
         <div class="col-12">
-            <h2><i class="fas fa-search" style="color: var(--accent-green);"></i> Arama Sonuçları</h2>
+            <h2 style="color: var(--accent-cream);">
+                <i class="fas fa-search" style="color: var(--accent-green);"></i> Arama Sonuçları
+            </h2>
             @if (!string.IsNullOrEmpty(searchTerm))
             {
                 <p class="text-muted">
-                    "<strong style="color: var(--accent-cream);">@searchTerm</strong>" için <strong>@Model.Count()</strong> sonuç bulundu
+                    "<strong style="color: var(--accent-green);">@searchTerm</strong>" için <strong>@Model.Count()</strong> sonuç bulundu
                 </p>
             }
         </div>
     </div>
 
-    <!-- Arama Formu -->
-    <div class="row mb-4">
+    <div class="row mb-5">
         <div class="col-md-8 offset-md-2">
             <form asp-controller="Movie" asp-action="Search" method="get" class="input-group input-group-lg">
                 <input type="text"
@@ -27,8 +28,9 @@
                        class="form-control"
                        placeholder="Film adı yazın..."
                        value="@searchTerm"
+                       style="background-color: var(--card-bg); color: var(--accent-cream); border-color: var(--accent-green);"
                        autofocus>
-                <button class="btn btn-primary" type="submit">
+                <button class="btn btn-primary" type="submit" style="background-color: var(--accent-green); border-color: var(--accent-green); color: var(--main-bg); font-weight: bold;">
                     <i class="fas fa-search"></i> Ara
                 </button>
             </form>
@@ -37,10 +39,9 @@
 
     @if (!Model.Any())
     {
-        <!-- Sonuç Bulunamadı -->
         <div class="row">
             <div class="col-12 text-center py-5">
-                <i class="fas fa-film fa-5x text-muted mb-3"></i>
+                <i class="fas fa-film fa-5x text-muted mb-3" style="opacity: 0.3;"></i>
                 <h4 class="text-muted">
                     @if (string.IsNullOrEmpty(searchTerm))
                     {
@@ -57,44 +58,59 @@
     }
     else
     {
-        <!-- Arama Sonuçları -->
         <div class="row row-cols-2 row-cols-md-4 row-cols-lg-5 g-4">
             @foreach (var movie in Model)
             {
                 <div class="col">
-                    <div class="card h-100 movie-card">
-                        <a asp-controller="Movie" asp-action="Details" asp-route-id="@movie.Id" class="text-decoration-none">
+                    <div class="card h-100 movie-card border-0 bg-transparent">
+                        <a asp-controller="Movie" asp-action="Details" asp-route-id="@movie.Id" class="text-decoration-none position-relative d-block">
+
+                            <div class="position-absolute top-0 end-0 m-2 d-flex flex-column align-items-end gap-1" style="z-index: 5;">
+                                @if (movie.UserAverageRating.HasValue)
+                                {
+                                    <span class="badge shadow d-flex align-items-center gap-1"
+                                          style="background-color: var(--accent-cream); color: var(--main-bg); font-size: 0.9rem; border: 1px solid var(--accent-green);">
+                                        <i class="fas fa-star text-warning"></i> @movie.UserAverageRating.Value.ToString("0.0")
+                                    </span>
+                                }
+
+                                @if (movie.VoteAverage.HasValue)
+                                {
+                                    <span class="badge shadow"
+                                          style="background-color: var(--accent-green); font-size: 0.75rem; opacity: 0.9;">
+                                        TMDB @movie.VoteAverage.Value.ToString("0.0")
+                                    </span>
+                                }
+                            </div>
+
                             @if (!string.IsNullOrEmpty(movie.PosterPath))
                             {
                                 <img src="@movie.FullPosterUrl"
-                                     class="card-img-top"
+                                     class="card-img-top rounded shadow"
                                      alt="@movie.Title"
-                                     style="height: 300px; object-fit: cover;">
+                                     style="height: 300px; object-fit: cover; border: 1px solid var(--accent-green);">
                             }
                             else
                             {
-                                <div class="card-img-top bg-secondary d-flex align-items-center justify-content-center"
-                                     style="height: 300px;">
-                                    <i class="fas fa-film fa-3x text-white"></i>
+                                <div class="card-img-top d-flex align-items-center justify-content-center rounded shadow"
+                                     style="height: 300px; background-color: var(--main-bg); color: var(--accent-green); border: 1px solid var(--accent-green);">
+                                    <i class="fas fa-film fa-3x"></i>
                                 </div>
                             }
 
-                            <div class="card-body">
-                                <h6 class="card-title text-dark mb-2" title="@movie.Title">
-                                    @(movie.Title.Length > 30 ? movie.Title.Substring(0, 30) + "..." : movie.Title)
+                            <div class="card-body px-1 py-2">
+                                <h6 class="card-title mb-2 text-truncate" title="@movie.Title" style="color: var(--accent-cream);">
+                                    @movie.Title
                                 </h6>
 
                                 <div class="d-flex justify-content-between align-items-center">
                                     <small class="text-muted">
-                                        @movie.ReleaseDate?.Year
+                                        <i class="fas fa-calendar-alt"></i> @movie.ReleaseDate?.Year
                                     </small>
 
-                                    @if (movie.VoteAverage.HasValue)
-                                    {
-                                        <span class="badge bg-warning text-dark">
-                                            <i class="fas fa-star"></i> @movie.VoteAverage.Value.ToString("0.0")
-                                        </span>
-                                    }
+                                    <small class="text-muted">
+                                        <i class="fas fa-eye"></i> @movie.WatchCount
+                                    </small>
                                 </div>
                             </div>
                         </a>

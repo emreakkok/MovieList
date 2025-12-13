@@ -25,6 +25,14 @@ namespace MovieList.Business.Services
 
         private MovieDto MapToMovieDto(Movie m)
         {
+
+            decimal? avgRating = null;
+            if (m.UserMovies != null && m.UserMovies.Any(um => um.Rating.HasValue))
+            {
+                avgRating = (decimal)m.UserMovies
+                    .Where(um => um.Rating.HasValue)
+                    .Average(um => um.Rating.Value);
+            }
             return new MovieDto
             {
                 Id = m.Id,
@@ -36,7 +44,8 @@ namespace MovieList.Business.Services
                 Runtime = m.Runtime,
                 VoteAverage = m.VoteAverage,
                 WatchCount = m.WatchCount,
-                LikeCount = m.LikeCount
+                LikeCount = m.LikeCount,
+                UserAverageRating = avgRating
             };
         }
 
@@ -54,6 +63,7 @@ namespace MovieList.Business.Services
             var tmdbMovie = await _tmdbApiService.GetMovieDetailsAsync(tmdbId);
             if (tmdbMovie == null)
                 return null;
+
 
             // Database'e kaydet
             var movie = new Movie
@@ -86,7 +96,8 @@ namespace MovieList.Business.Services
                 return null;
             }
 
-            // ✅ Kullanıcı puan ortalamasını hesapla
+
+            // Kullanıcı puan ortalamasını hesapla
             var userRatings = movieEntity.UserMovies
                 .Where(um => um.Rating.HasValue)
                 .Select(um => um.Rating.Value)
@@ -112,7 +123,7 @@ namespace MovieList.Business.Services
                 WatchCount = movieEntity.WatchCount,
                 LikeCount = movieEntity.LikeCount,
 
-                // ✅ Kullanıcı puanları
+                // Kullanıcı puanları
                 UserAverageRating = userAverageRating,
                 UserRatingCount = userRatings.Count,
 
@@ -184,7 +195,6 @@ namespace MovieList.Business.Services
             if (string.IsNullOrWhiteSpace(searchTerm))
                 return Enumerable.Empty<MovieDto>();
 
-            // TMDB'de ara
             var tmdbResponse = await _tmdbApiService.SearchMoviesAsync(searchTerm);
             if (tmdbResponse == null || !tmdbResponse.Results.Any())
                 return Enumerable.Empty<MovieDto>();
@@ -193,10 +203,25 @@ namespace MovieList.Business.Services
 
             foreach (var tmdbMovie in tmdbResponse.Results.Take(20))
             {
-                // Database'e kaydet
+                // 1. Filmi kaydet veya getir
                 var movie = await SaveMovieFromTmdbAsync(tmdbMovie.Id);
+
                 if (movie != null)
                 {
+                   
+
+                    if (movie.UserMovies == null || !movie.UserMovies.Any())
+                    {
+                        var detailedMovie = await _movieRepository.GetMovieWithDetailsAsync(movie.Id);
+
+                        // Eğer detaylı hali başarıyla geldiyse, movie değişkenini güncelle
+                        if (detailedMovie != null)
+                        {
+                            movie = detailedMovie;
+                        }
+                    }
+
+                    // 3. Artık movie içinde puanlar olduğu için MapToMovieDto ortalamayı hesaplayabilir.
                     movies.Add(MapToMovieDto(movie));
                 }
             }

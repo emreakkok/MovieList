@@ -90,6 +90,7 @@ builder.Services.AddScoped<IUserMovieRepository, UserMovieRepository>();
 builder.Services.AddScoped<IFollowRepository, FollowRepository>();
 builder.Services.AddScoped<IWatchlistRepository, WatchlistRepository>();
 builder.Services.AddScoped<IMovieLikeRepository, MovieLikeRepository>();
+builder.Services.AddScoped<IReviewRepository, ReviewRepository>();
 
 // HttpClient for TMDB API
 builder.Services.AddHttpClient<ITmdbApiService, TmdbApiService>(client =>
@@ -105,6 +106,7 @@ builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IFollowService, FollowService>();
 builder.Services.AddScoped<IUserMovieService, UserMovieService>();
 builder.Services.AddScoped<IWatchlistService, WatchlistService>();
+builder.Services.AddScoped<IReviewService, ReviewService>();
 
 // Helpers
 builder.Services.AddScoped<JwtHelper>();

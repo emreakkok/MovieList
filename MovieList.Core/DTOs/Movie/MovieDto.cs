@@ -21,6 +21,8 @@ namespace MovieList.Core.DTOs.Movie
 
         public int? UserRating { get; set; }
 
+        public decimal? UserAverageRating { get; set; }
+
         public string FullPosterUrl
         {
             get

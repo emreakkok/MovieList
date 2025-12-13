@@ -4,56 +4,207 @@
     ViewData["Title"] = "Ana Sayfa";
 }
 
-<div class="row mb-4">
-    <div class="col-12">
-        <h2 class="mb-3" style="color: var(--accent-cream);">
-            <i class="fas fa-fire" style="color: var(--accent-green);"></i> Popüler Filmler
-        </h2>
+<div class="hero-section mb-5 p-5 rounded" style="background: linear-gradient(135deg, var(--main-bg) 0%, #1a1a1a 100%); border: 2px solid var(--accent-green);">
+    <div class="text-center">
+        <h1 class="display-3 fw-bold mb-3" style="color: var(--accent-cream);">
+            <i class="fas fa-film text-warning"></i> MovieList'e Hoş Geldiniz
+        </h1>
+        <p class="lead mb-4" style="color: var(--accent-green); font-size: 1.3rem;">
+            Filmlerinizi keşfedin, puanlayın ve takip edin!
+        </p>
+
+        @if (User.Identity?.IsAuthenticated == true)
+        {
+            <div class="d-flex justify-content-center gap-3">
+                <a asp-controller="Movie" asp-action="Popular" class="btn btn-lg"
+                   style="background-color: var(--accent-green); color: var(--main-bg); border: none; font-weight: bold;">
+                    <i class="fas fa-fire"></i> Popüler Filmler
+                </a>
+                <a asp-controller="Watchlist" asp-action="Index" class="btn btn-lg btn-outline-light">
+                    <i class="fas fa-bookmark"></i> Watchlist'im
+                </a>
+            </div>
+        }
+        else
+        {
+            <div class="d-flex justify-content-center gap-3">
+                <a asp-controller="Account" asp-action="Register" class="btn btn-lg"
+                   style="background-color: var(--accent-green); color: var(--main-bg); border: none; font-weight: bold;">
+                    <i class="fas fa-user-plus"></i> Hemen Kayıt Ol
+                </a>
+                <a asp-controller="Account" asp-action="Login" class="btn btn-lg btn-outline-light">
+                    <i class="fas fa-sign-in-alt"></i> Giriş Yap
+                </a>
+            </div>
+        }
     </div>
 </div>
 
-<div class="row row-cols-2 row-cols-md-4 row-cols-lg-5 g-4">
-    @foreach (var movie in Model)
+<div class="row mb-5 text-center">
+    <div class="col-md-4 mb-3">
+        <div class="p-4 rounded h-100" style="background-color: var(--card-bg); border: 1px solid var(--accent-green);">
+            <i class="fas fa-star fa-3x mb-3" style="color: var(--accent-green);"></i>
+            <h4 style="color: var(--accent-cream);">Puanlama Sistemi</h4>
+            <p class="text-muted">Filmlerinizi 1-10 arası puanlayın ve izleme geçmişinizi takip edin</p>
+        </div>
+    </div>
+    <div class="col-md-4 mb-3">
+        <div class="p-4 rounded h-100" style="background-color: var(--card-bg); border: 1px solid var(--accent-green);">
+            <i class="fas fa-bookmark fa-3x mb-3" style="color: var(--accent-green);"></i>
+            <h4 style="color: var(--accent-cream);">Watchlist</h4>
+            <p class="text-muted">İzlemek istediğiniz filmleri listeye ekleyin ve unutmayın</p>
+        </div>
+    </div>
+    <div class="col-md-4 mb-3">
+        <div class="p-4 rounded h-100" style="background-color: var(--card-bg); border: 1px solid var(--accent-green);">
+            <i class="fas fa-users fa-3x mb-3" style="color: var(--accent-green);"></i>
+            <h4 style="color: var(--accent-cream);">Sosyal Özellikler</h4>
+            <p class="text-muted">Arkadaşlarınızı takip edin ve yorum yapın</p>
+        </div>
+    </div>
+</div>
+
+<div class="mb-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 style="color: var(--accent-cream); border-left: 4px solid var(--accent-green); padding-left: 15px;">
+            <i class="fas fa-fire" style="color: var(--accent-green);"></i> TMDB Popüler Filmler
+        </h2>
+    </div>
+
+    @if (Model != null && Model.Any())
     {
-        <div class="col">
-            <div class="card h-100 movie-card">
-                <a asp-controller="Movie" asp-action="Details" asp-route-id="@movie.Id" class="text-decoration-none">
+        <div class="row">
+            @foreach (var movie in Model.Take(8))
+            {
+                <div class="col-6 col-md-3 col-lg-3 mb-4">
+                    <div class="card h-100 movie-card border-0 bg-transparent position-relative">
+                        <a asp-controller="Movie" asp-action="Details" asp-route-id="@movie.Id" class="text-decoration-none position-relative d-block">
 
-                    @if (!string.IsNullOrEmpty(movie.PosterPath))
-                    {
-                        <img src="@movie.FullPosterUrl" class="card-img-top" alt="@movie.Title" style="height: 300px; object-fit: cover;">
-                    }
-                    else
-                    {
-                        <div class="card-img-top d-flex align-items-center justify-content-center"
-                             style="height: 300px; background-color: var(--main-bg); color: var(--accent-green);">
-                            <i class="fas fa-film fa-3x"></i>
-                        </div>
-                    }
+                            <div class="position-absolute top-0 end-0 m-2 d-flex flex-column align-items-end gap-1" style="z-index: 5;">
+                                @if (movie.UserAverageRating.HasValue)
+                                {
+                                    <span class="badge shadow d-flex align-items-center gap-1"
+                                          style="background-color: var(--accent-cream); color: var(--main-bg); font-size: 0.9rem; border: 1px solid var(--accent-green);">
+                                        <i class="fas fa-star text-warning"></i> @movie.UserAverageRating.Value.ToString("0.0")
+                                    </span>
+                                }
+                                @if (movie.VoteAverage.HasValue)
+                                {
+                                    <span class="badge shadow"
+                                          style="background-color: var(--accent-green); font-size: 0.75rem; opacity: 0.9;">
+                                        TMDB @movie.VoteAverage.Value.ToString("0.0")
+                                    </span>
+                                }
+                            </div>
 
-                    <div class="card-body">
-                        <h6 class="card-title mb-2" title="@movie.Title">
-                            @(movie.Title.Length > 25 ? movie.Title.Substring(0, 25) + "..." : movie.Title)
-                        </h6>
-
-                        <div class="d-flex justify-content-between align-items-center">
-                            <small class="text-muted">@movie.ReleaseDate?.Year</small>
-
-                            @if (movie.VoteAverage.HasValue)
+                            @if (!string.IsNullOrEmpty(movie.PosterPath))
                             {
-                                <span class="badge bg-warning">
-                                    <i class="fas fa-star"></i> @movie.VoteAverage.Value.ToString("0.0")
-                                </span>
+                                <img src="@movie.FullPosterUrl" class="card-img-top rounded shadow"
+                                     alt="@movie.Title" style="height: 350px; object-fit: cover; border: 2px solid var(--accent-green);">
                             }
-                        </div>
+                            else
+                            {
+                                <div class="card-img-top bg-secondary d-flex align-items-center justify-content-center rounded shadow"
+                                     style="height: 350px; border: 2px solid var(--accent-green);">
+                                    <i class="fas fa-film fa-3x text-white"></i>
+                                </div>
+                            }
+                        </a>
 
-                        <div class="mt-2 text-muted" style="font-size: 0.8rem;">
-                            <i class="fas fa-eye"></i> @movie.WatchCount
-                            <i class="fas fa-heart ms-2"></i> @movie.LikeCount
+                        <div class="card-body p-2">
+                            <h6 class="card-title mb-1" style="font-size: 0.95rem; height: 2.5rem; overflow: hidden;">
+                                <a asp-controller="Movie" asp-action="Details" asp-route-id="@movie.Id"
+                                   style="color: var(--accent-cream); text-decoration: none;">
+                                    @movie.Title
+                                </a>
+                            </h6>
+                            @if (movie.ReleaseDate.HasValue)
+                            {
+                                <small class="text-muted">
+                                    <i class="fas fa-calendar"></i> @movie.ReleaseDate.Value.Year
+                                </small>
+                            }
+                            <div class="mt-2">
+                                <small class="text-muted">
+                                    <i class="fas fa-eye"></i> @movie.WatchCount izlenme
+                                </small>
+                            </div>
                         </div>
                     </div>
-                </a>
-            </div>
+                </div>
+            }
+        </div>
+    }
+    else
+    {
+        <div class="alert alert-info">
+            <i class="fas fa-info-circle"></i> Henüz popüler film bulunmuyor.
         </div>
     }
 </div>
+
+<div class="mb-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 style="color: var(--accent-cream); border-left: 4px solid var(--accent-green); padding-left: 15px;">
+            <i class="fas fa-trophy" style="color: gold;"></i> En Çok Puanlanan Filmler
+        </h2>
+        <a asp-controller="Movie" asp-action="Popular" class="btn btn-outline-light btn-sm">
+            Tümünü Gör <i class="fas fa-arrow-right"></i>
+        </a>
+    </div>
+
+    <div id="topRatedMovies" class="row">
+        <div class="col-12 text-center">
+            <i class="fas fa-spinner fa-spin fa-3x" style="color: var(--accent-green);"></i>
+            <p class="mt-3 text-muted">En çok puanlanan filmler yükleniyor...</p>
+        </div>
+    </div>
+</div>
+
+@if (User.Identity?.IsAuthenticated != true)
+{
+    <div class="text-center p-5 rounded mb-4" style="background-color: var(--card-bg); border: 2px solid var(--accent-green);">
+        <h3 class="mb-3" style="color: var(--accent-cream);">Hemen Başlayın!</h3>
+        <p class="mb-4" style="color: var(--accent-green);">
+            Binlerce film arasından favorilerinizi bulun, puanlayın ve arkadaşlarınızla paylaşın.
+        </p>
+        <a asp-controller="Account" asp-action="Register" class="btn btn-lg"
+           style="background-color: var(--accent-green); color: var(--main-bg); border: none; font-weight: bold;">
+            <i class="fas fa-rocket"></i> Ücretsiz Kayıt Ol
+        </a>
+    </div>
+}
+
+@section Scripts {
+    <script>
+        // En çok puanlanan filmleri yükle
+        document.addEventListener('DOMContentLoaded', function() {
+            fetch('/Movie/Popular')
+                .then(response => response.text())
+                .then(html => {
+                    // Parse HTML ve sadece film kartlarını al
+                    const parser = new DOMParser();
+                    const doc = parser.parseFromString(html, 'text/html');
+                    const movieCards = doc.querySelectorAll('.movie-card');
+
+                    if (movieCards.length > 0) {
+                        let moviesHtml = '';
+                        // İlk 4 filmi al
+                        for (let i = 0; i < Math.min(4, movieCards.length); i++) {
+                            const card = movieCards[i];
+                            moviesHtml += `<div class="col-6 col-md-3 mb-4">${card.parentElement.innerHTML}</div>`;
+                        }
+                        document.getElementById('topRatedMovies').innerHTML = moviesHtml;
+                    } else {
+                        document.getElementById('topRatedMovies').innerHTML =
+                            '<div class="col-12"><p class="text-muted text-center">Henüz puanlanmış film yok</p></div>';
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    document.getElementById('topRatedMovies').innerHTML =
+                        '<div class="col-12"><p class="text-danger text-center">Filmler yüklenirken hata oluştu</p></div>';
+                });
+        });
+    </script>
+}

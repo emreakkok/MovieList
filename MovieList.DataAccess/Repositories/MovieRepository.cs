@@ -18,7 +18,9 @@ namespace MovieList.DataAccess.Repositories
 
         public async Task<Movie?> GetByTmdbIdAsync(int tmdbId)
         {
-            return await _dbSet.FirstOrDefaultAsync(m => m.TmdbId == tmdbId);
+            return await _context.Movies
+                .Include(m => m.UserMovies)
+                .FirstOrDefaultAsync(m => m.TmdbId == tmdbId);
         }
 
         public async Task<IEnumerable<Movie>> GetMostWatchedAsync(int count = 20)
